@@ -147,6 +147,7 @@ __kernel void comparer(__global char* chr, __global unsigned int* loci, __global
 		}
 		if (lmm_count <= threshold) {
 			old = atomic_inc(entrycount);
+			if (entrycount > 4) {break;}
 			mm_count[old] = lmm_count;
 			direction[old] = '-';
 			mm_loci[old] = loci[i];
@@ -278,6 +279,7 @@ __kernel void comparer_cpu(__global char* chr, __global unsigned int* loci, __gl
 		}
 		if (lmm_count <= threshold) {
 			old = atomic_inc(entrycount);
+			if (entrycount > 4) {break;}
 			mm_count[old] = lmm_count;
 			direction[old] = '-';
 			mm_loci[old] = loci[i];
