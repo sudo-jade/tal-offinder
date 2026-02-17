@@ -8,7 +8,7 @@
 #endif
 #include <sstream>
 #include <iterator>
-
+#include <iostream>
 using namespace std;
 
 #define add_compare(a, b, c)\
@@ -353,7 +353,8 @@ void Cas_OFFinder::compareAll(const char* outfilename, bool issummary) {
 		fo = new ofstream(outfilename, ios::out | ios::app);
 		isfile = true;
 	}
-	for (auto &ci: m_compares) {
+	for (auto it = m_compares.begin(); it != m_compares.end();){
+		auto ci = *it;
 		compare = ci.first;
 		id = ci.second.first.first;
 		threshold = ci.second.first.second;
@@ -382,6 +383,7 @@ void Cas_OFFinder::compareAll(const char* outfilename, bool issummary) {
 		unsigned int cnt = 0;
 		unsigned int idx;
 		char key[10000];
+		int perfect = 0;
 		for (dev_index = 0; dev_index < m_activedevnum; dev_index++) {
 			if (m_locicnts[dev_index] > 0) {
 				oclFinish(m_queues[dev_index]);
@@ -394,6 +396,13 @@ void Cas_OFFinder::compareAll(const char* outfilename, bool issummary) {
 					for (i = 0; i < cnt; i++) {
 						loci = m_mmlocis[dev_index][i] + m_lasttotalanalyzedsize + localanalyzedsize;
 						if (m_mmcounts[dev_index][i] <= threshold) {
+							if (m_mmcounts[dev_index][i] == 0){
+								perfect++;
+								if(perfect>2){
+									break;
+
+								}
+							}
 							strncpy(strbuf, (char *)(m_chrdata.c_str() + loci), m_patternlen);
 							if (m_directions[dev_index][i] == '-') set_complementary_sequence((cl_char *)strbuf, m_patternlen);
 							indicate_mismatches((cl_char*)strbuf, (cl_char*)compare.c_str());
@@ -460,6 +469,8 @@ void Cas_OFFinder::compareAll(const char* outfilename, bool issummary) {
 			localanalyzedsize += m_worksizes[dev_index];
 		}
 		fo->flush();
+		if (perfect > 2){m_compares.erase(it++);}
+		else {++it;}
 	}
 	if (isfile)
 		((ofstream *)fo)->close();
